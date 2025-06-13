@@ -475,33 +475,70 @@ function createBalloonAndFlowerEffect() {
 // 축하 사운드 재생 (clap sound)
 function playCelebrationSound() {
     try {
-        const audio = new Audio('clap.MP3');
+        // 다양한 파일명 시도
+        const audioSources = ['clap.mp3', 'clap.MP3', './clap.mp3', './clap.MP3'];
+        let audio = null;
+        
+        // 첫 번째 사용 가능한 파일 찾기
+        for (let src of audioSources) {
+            try {
+                audio = new Audio(src);
+                break;
+            } catch (e) {
+                console.log(`${src} 파일을 찾을 수 없습니다.`);
+            }
+        }
+        
+        if (!audio) {
+            console.log('축하 사운드 파일을 찾을 수 없습니다.');
+            return;
+        }
+        
         audio.volume = 0.7; // 초기 볼륨 조절 (0.0 ~ 1.0)
         
-        audio.play().catch(error => {
-            console.log('사운드 재생 중 오류:', error);
+        // 오디오 로드 완료 후 재생
+        audio.addEventListener('canplaythrough', () => {
+            console.log('오디오 로드 완료, 재생 시작');
         });
         
-        // 2초 후부터 볼륨을 빠르게 줄이기 시작
-        setTimeout(() => {
-            const fadeOutInterval = setInterval(() => {
-                if (audio.volume > 0.05) {
-                    audio.volume = Math.max(0, audio.volume - 0.15); // 볼륨을 더 빠르게 줄임
-                } else {
-                    audio.volume = 0; // 완전히 무음
-                    clearInterval(fadeOutInterval);
-                }
-            }, 80); // 0.08초마다 볼륨 조절 (더 빠르게)
-        }, 2000); // 2초 후 시작
+        audio.addEventListener('error', (e) => {
+            console.error('오디오 로드 오류:', e);
+        });
         
-        // 4초 후 완전히 정지
-        setTimeout(() => {
-            audio.pause();
-            audio.currentTime = 0; // 재생 위치를 처음으로 되돌림
-        }, 4000);
+        // 사용자 인터랙션이 있었으므로 재생 시도
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    console.log('축하 사운드 재생 성공!');
+                    
+                    // 2초 후부터 볼륨을 빠르게 줄이기 시작
+                    setTimeout(() => {
+                        const fadeOutInterval = setInterval(() => {
+                            if (audio.volume > 0.05) {
+                                audio.volume = Math.max(0, audio.volume - 0.15); // 볼륨을 더 빠르게 줄임
+                            } else {
+                                audio.volume = 0; // 완전히 무음
+                                clearInterval(fadeOutInterval);
+                            }
+                        }, 80); // 0.08초마다 볼륨 조절 (더 빠르게)
+                    }, 2000); // 2초 후 시작
+                    
+                    // 4초 후 완전히 정지
+                    setTimeout(() => {
+                        audio.pause();
+                        audio.currentTime = 0; // 재생 위치를 처음으로 되돌림
+                    }, 4000);
+                })
+                .catch(error => {
+                    console.error('사운드 재생 실패:', error);
+                    console.log('브라우저에서 자동 재생을 차단했을 수 있습니다.');
+                });
+        }
         
     } catch (error) {
-        console.log('오디오 재생을 지원하지 않는 브라우저입니다.');
+        console.error('오디오 재생 오류:', error);
     }
 }
 
@@ -514,6 +551,21 @@ function clearCelebrationEffects() {
         }
     });
 }
+
+// 오디오 컨텍스트 활성화를 위한 첫 사용자 인터랙션 처리
+function enableAudio() {
+    // 더미 오디오 재생으로 오디오 컨텍스트 활성화
+    const dummyAudio = new Audio();
+    dummyAudio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcfCkOa2ezEdCkGK3zD8NSNPwsVZ7jp66JTFQxIruN2zWzHhf///';
+    dummyAudio.volume = 0.01;
+    dummyAudio.play().catch(() => {});
+    
+    console.log('오디오 컨텍스트가 활성화되었습니다.');
+}
+
+// 첫 클릭/터치 시 오디오 활성화
+document.addEventListener('click', enableAudio, { once: true });
+document.addEventListener('touchstart', enableAudio, { once: true });
 
 // 브라우저가 로드되면 앱 초기화
 window.addEventListener('load', init); 
