@@ -472,10 +472,10 @@ function createBalloonAndFlowerEffect() {
     }
 }
 
-// 축하 사운드 재생 (crowd cheer)
+// 축하 사운드 재생 (clap sound)
 function playCelebrationSound() {
     try {
-        const audio = new Audio('short-crowd-cheer-6713.mp3');
+        const audio = new Audio('clap.MP3');
         audio.volume = 0.7; // 초기 볼륨 조절 (0.0 ~ 1.0)
         
         audio.play().catch(error => {
