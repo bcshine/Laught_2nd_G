@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>스마일 채점기</title>
+    
+    <!-- 구글 폰트 추가 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <!-- 배민 주아체 추가 -->
+    <link href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2310@1.0/BMJUA.woff2" rel="stylesheet">
+
+    <style>
+        @font-face {
+            font-family: 'BMJUA';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/BMJUA.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'BMJUA', 'Jua', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+            width: 100%;
+            padding: 10px;
+        }
+        
+        #container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        
+        #video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 75%; /* 4:4 비율 유지 */
+            overflow: hidden;
+            border-radius: 10px;
+            background-color: #000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        #video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* 거울 효과 */
+            border-radius: 10px;
+        }
+        
+        #face-points {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1); /* 비디오와 일치하도록 좌우 반전 */
+        }
+        
+        #score-box {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            font-family: 'BMJUA', sans-serif;
+        }
+
+        .score-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .score-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #score-value {
+            font-family: 'BMJUA', sans-serif;
+            font-size: 60px;
+            color: #3498db;
+            margin-right: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        #message {
+            margin-top: 4px;
+            margin-bottom: 8px;
+            font-size: 20px;
+            color: #555;
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 24px;
+        }
+        
+        .quote-text {
+            position: absolute;
+            top: 18px;
+            left: 20px;
+            color: white;
+            font-style: italic;
+            z-index: 10;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.936);
+            font-family: 'Nanum Pen Script', cursive;
+            font-size: 40px;
+        }
+        
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            #video-wrapper {
+                padding-top: 100%; /* 1:1 비율로 변경 */
+            }
+            
+            #score-box {
+                font-size: 50px;
+                padding: 10px;
+            }
+            
+            #score-value {
+                font-size: 50px;
+            }
+            
+            #message {
+                font-size: 22px;
+            }
+            
+            .quote-text {
+                font-size: 22px;
+                top: 15px;
+                left: 15px;
+            }
+            
+            .page-title {
+                margin: 40px 0 15px;
+                gap: 8px;
+                padding: 0 10px;
+            }
+            
+            .page-title span.title-text {
+                font-size: 30px; /* 48px의 50% */
+            }
+
+            .emoji {
+                font-size: 24px;
+            }
+        }
+
+        /* 기존 title 클래스 수정 */
+        .page-title {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 40px 0 20px;
+            padding: 0 15px;
+            box-sizing: border-box;/*내가 width로 지정한 값이 최종 요소의 전체 너비가 되게 해줘*/
+        }
+
+        .page-title span.title-text {
+            font-family: 'BMJUA', sans-serif;
+            font-size: 30px;
+            font-weight: normal;
+            color: #3498db;
+            white-space: nowrap;
+        }
+
+        .emoji {
+            font-size: 28px; /* 40px에서 30% 감소 */
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-7px);
+            }
+        }
+
+        #main-content {
+            width: 100%;
+        }
+
+        #retry-camera-button {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Jua', sans-serif;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            z-index: 100;
+            width: fit-content;
+        }
+        
+        #retry-camera-button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<!-- 여기까지 헤드부분, 지금부터 바디부분 -->
+<body>
+    <h1 class="page-title">
+        <span class="emoji">😊</span>
+        <span class="title-text">서울한의원 스마일채점기</span>
+        <span class="emoji">😊</span>
+    </h1>
+
+    <div id="main-content">
+        <div id="container">
+            <div id="video-wrapper">
+                <div class="quote-text">* 웃으면 8살 젊어져요 *</div>
+                <video id="video" autoplay muted playsinline></video>
+                <canvas id="face-points"></canvas>
+                <div id="message-camera"></div>
+                <button id="retry-camera-button" style="display: none;" onclick="retryCamera()">카메라 다시 시도</button>
+            </div>
+            <div id="score-box">
+                <div class="score-container">
+                    <div class="score-display">
+                        <span id="score-value">80</span><span>점</span>
+                    </div>
+                    <div id="message">카메라를 켜는 중...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face-API.js -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
